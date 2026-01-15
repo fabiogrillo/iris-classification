@@ -1,89 +1,217 @@
-# CNN Image Classifier - CIFAR-10
+# CIFAR-10 Image Classification with CNN
 
-Image classification using Convolutional Neural Networks on the CIFAR-10 dataset.
+Deep learning image classification comparing three architectures: Baseline CNN, Augmented CNN with BatchNorm, and Transfer Learning with MobileNetV2. Production-ready with FastAPI and Docker.
 
-## Hardware & Acceleration
+## Project Highlights
 
-### What is CUDA?
-
-**CUDA (Compute Unified Device Architecture)** is a parallel computing platform and programming model developed by NVIDIA. It allows software to use NVIDIA GPUs for general purpose processing (not just graphics), dramatically accelerating deep learning computations.
-
-**Key Benefits:**
-- **Speed**: Neural network training that takes hours on CPU can complete in minutes on GPU
-- **Parallelism**: GPUs have thousands of cores designed for parallel operations, perfect for matrix computations in deep learning
-- **Efficiency**: Modern deep learning frameworks (TensorFlow, PyTorch) automatically leverage CUDA when available
-
-### System Hardware
-
-- **GPU**: NVIDIA GeForce RTX 5080 (16GB VRAM)
-- **Architecture**: Blackwell (Compute Capability 12.0)
-- **CUDA Version**: 13.0
-
-### Current Status: CPU Mode
-
-⚠️ **Important**: The RTX 5080 is very new (released 2025) and current stable versions of TensorFlow (2.20.0) and PyTorch (2.6.0) don't yet fully support compute capability 12.0. The project is configured to run on CPU for now.
-
-**Alternatives for GPU training:**
-- **Google Colab**: Free T4/A100 GPUs with full library support
-- **Wait**: TensorFlow 2.21+ / PyTorch 2.7+ will likely add Blackwell support
-- **Note**: CPU training for CIFAR-10 (32x32 images) is actually quite fast on modern CPUs
+- **87.4% accuracy** with Transfer Learning (MobileNetV2)
+- **3-model progressive comparison** demonstrating iterative improvement
+- **Overfitting analysis** with mitigation strategies (augmentation, regularization)
+- **Production-ready REST API** with single and batch prediction endpoints
+- **Docker containerization** for scalable deployment
 
 ---
 
-## Project Setup
+## Dataset
 
-### 1. Create Virtual Environment
-```bash
-python -m venv venv
+**CIFAR-10**: 60,000 color images (32x32 RGB) across 10 classes.
+
+| Split | Images | Classes |
+|-------|--------|---------|
+| Train | 40,000 | 10 |
+| Validation | 10,000 | 10 |
+| Test | 10,000 | 10 |
+
+**Classes**: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
+
+---
+
+## Exploratory Data Analysis
+
+### Sample Images per Class
+![Sample per class](figures/sample_per_class.png)
+
+### Class Distribution
+![Class distribution](figures/class_distribution_train.png)
+
+Balanced dataset with 5,000 training images per class.
+
+### RGB Channel Analysis
+![RGB channels](figures/channels_distribution.png)
+
+Channel statistics (0-255 range):
+- Red: mean=125.31, std=62.99
+- Green: mean=122.95, std=62.09
+- Blue: mean=113.87, std=66.70
+
+---
+
+## Model Architectures
+
+### 1. Baseline CNN
+
+Custom CNN with 2 convolutional blocks:
+
+```
+Conv2D(32) → Conv2D(32) → MaxPool → Dropout(0.25)
+Conv2D(64) → Conv2D(64) → MaxPool → Dropout(0.25)
+Flatten → Dense(512) → Dropout(0.5) → Dense(10, softmax)
 ```
 
-### 2. Activate Virtual Environment
-```bash
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate  # Windows
+**Parameters**: 2.1M trainable
+
+![Baseline training](figures/baseline_training_curves.png)
+
+**Result**: 78.66% accuracy | 4.45% overfitting gap
+
+---
+
+### 2. Augmented CNN + BatchNorm
+
+Same architecture with data augmentation and batch normalization:
+
+![Augmentation techniques](figures/individual_augmentations.png)
+
+**Augmentation pipeline**:
+- RandomFlip (horizontal)
+- RandomRotation (10%)
+- RandomZoom (10%)
+- RandomTranslation (10%)
+- RandomContrast (10%)
+
+![Augmented training](figures/augmented_training_curves.png)
+
+**Result**: 80.57% accuracy | 0.55% overfitting gap
+
+*Augmentation eliminated overfitting but modest accuracy gain.*
+
+---
+
+### 3. Transfer Learning (MobileNetV2)
+
+Pre-trained MobileNetV2 (ImageNet) as feature extractor:
+
+```
+Input(96x96x3) → MobileNetV2(frozen) → GlobalAvgPool
+→ Dropout(0.5) → Dense(128) → Dropout(0.3) → Dense(10, softmax)
 ```
 
-### 3. Install Dependencies
+**Parameters**: 2.4M total (165K trainable)
+
+Images resized from 32x32 to 96x96 for MobileNetV2 compatibility.
+
+**Result**: 87.42% accuracy | 0.89% overfitting gap
+
+---
+
+## Results Comparison
+
+![Three model comparison](figures/three_model_comparison.png)
+
+| Model | Test Accuracy | Test Loss | Overfitting Gap |
+|-------|---------------|-----------|-----------------|
+| Baseline CNN | 78.66% | 0.657 | 4.45% |
+| Augmented CNN | 80.57% | 0.577 | 0.55% |
+| **Transfer Learning** | **87.42%** | **0.369** | **0.89%** |
+
+**Key insight**: Transfer Learning achieves +8.76% accuracy over baseline while maintaining low overfitting, demonstrating the power of pre-trained features.
+
+---
+
+## Model Evaluation
+
+### Confusion Matrix (Transfer Learning)
+![Confusion matrix](figures/confusion_matrix_transfer.png)
+
+**Per-class performance** (F1-scores):
+- Best: frog (0.93), ship (0.92), automobile (0.92)
+- Challenging: cat (0.79), dog (0.82) — visually similar classes
+
+---
+
+## API Deployment
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Health check |
+| GET | `/health` | Detailed status |
+| POST | `/predict` | Single image classification |
+| POST | `/predict/batch` | Batch prediction (max 32) |
+
+### Usage Example
+
 ```bash
-pip install -r requirements.txt
+# Single prediction
+curl -X POST "http://localhost:8000/predict" \
+  -F "file=@test_images/cat_test.png"
+
+# Response
+{
+  "predicted_class": "cat",
+  "confidence": 0.847,
+  "probabilities": {"airplane": 0.02, "cat": 0.847, ...}
+}
 ```
 
-### 4. Configure Jupyter Kernel
+### Docker Deployment
+
 ```bash
-python -m ipykernel install --user --name=cnn_classifier --display-name="CNN Classifier (Python 3.12)"
+# Build
+docker build -t cifar10-api .
+
+# Run
+docker run -p 8000:8000 cifar10-api
 ```
 
-### 5. Use the Notebook
-1. Launch Jupyter: `jupyter notebook` or `jupyter lab`
-2. In the notebook, go to **Kernel → Change Kernel → CNN Classifier (Python 3.12)**
-3. Add `import setup_gpu` at the start to configure TensorFlow
-4. Run the cells - TensorFlow will use CPU mode
+---
+
+## Tech Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Deep Learning | TensorFlow 2.20, Keras, MobileNetV2 |
+| Data Processing | NumPy, Pandas, Pillow |
+| Visualization | Matplotlib, Seaborn |
+| API | FastAPI, Pydantic, Uvicorn |
+| Deployment | Docker |
+| ML Utilities | scikit-learn |
 
 ---
 
 ## Project Structure
+
 ```
 CNN_image_classifier/
-├── venv/                      # Virtual environment (not committed)
-├── data/                      # Dataset
-├── cnn_cifar10.ipynb         # Main notebook
-├── setup_gpu.py              # GPU configuration for RTX 5080
-├── requirements.txt           # Python dependencies
-├── .gitignore                # Git ignore rules
-└── README.md                  # This file
+├── cnn_cifar10.ipynb          # Training notebook (EDA, models, evaluation)
+├── app.py                      # FastAPI application
+├── Dockerfile                  # Container configuration
+├── models/
+│   ├── best_transfer_mobilenet.keras   # Production model
+│   ├── best_augmented.keras
+│   ├── best_baseline.keras
+│   └── classes.json            # Class mappings
+├── figures/                    # All visualizations
+├── test_images/                # Sample images for testing
+└── requirements.txt
 ```
 
-## Key Dependencies
-- TensorFlow 2.20.0 (with CUDA support)
-- NumPy
-- Pandas
-- Matplotlib
-- Jupyter
-- NVIDIA CUDA libraries (installed automatically with TensorFlow)
+---
 
-## Notes
-- The virtual environment (`venv/`) is not committed to Git
-- Always activate the venv when working on the project: `source venv/bin/activate`
-- First GPU run may be slower due to CUDA kernel compilation for compute capability 12.0
-- GPU memory growth is enabled to prevent OOM errors
+## Quick Start
+
+```bash
+# Clone and setup
+git clone <repo-url>
+cd CNN_image_classifier
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# Run API
+python app.py
+# or with Docker
+docker build -t cifar10-api . && docker run -p 8000:8000 cifar10-api
+```
+
+API available at `http://localhost:8000/docs` (Swagger UI)

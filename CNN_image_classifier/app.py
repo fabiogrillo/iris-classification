@@ -55,7 +55,9 @@ def preprocess_image(image) -> np.ndarray:
     2. Resize to (96, 96)
     3. convert to numpy array
     4. add batch dimension
-    5. preprocess for MobileNetV2
+
+    NOTE: preprocess_input is NOT called here because it's already
+    included as a Lambda layer inside the saved model.
     """
     if image.mode != "RGB":
         image = image.convert("RGB")
@@ -63,7 +65,6 @@ def preprocess_image(image) -> np.ndarray:
     image = image.resize((96, 96))
     image_array = np.array(image, dtype=np.float32)
     image_array = np.expand_dims(image_array, axis=0)
-    image_array = preprocess_input(image_array)
     return image_array
 
 

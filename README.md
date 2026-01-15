@@ -1,27 +1,61 @@
 # Machine Learning Projects
 
-This repository contains multiple machine learning projects demonstrating various ML techniques, algorithms, and deployment strategies.
+End-to-end ML projects demonstrating classification, regression, and deep learning with production-ready API deployments.
+
+---
 
 ## Projects
 
-### 1. Iris Classification Project
-**Status**: ✅ Complete
-**Type**: Multi-class Classification
-**Location**: [`Iris-Project/`](./Iris-Project/)
+### 1. Iris Classification
+**Status**: Complete | **Type**: Multi-class Classification
 
-**Description**: End-to-end machine learning pipeline for classifying iris flower species using scikit-learn, with a FastAPI REST API deployment.
+End-to-end ML pipeline for iris species classification with FastAPI deployment.
 
 **Key Features**:
-- Multi-class classification (3 species)
 - Model comparison (SVM, Logistic Regression, Random Forest, Decision Tree)
-- 96.7% test accuracy with Support Vector Machine
-- RESTful API with FastAPI and Pydantic validation
-- Docker containerization for deployment
-- Comprehensive EDA and feature engineering
+- 96.7% accuracy with Support Vector Machine
+- REST API with FastAPI + Docker
 
-**Tech Stack**: Python, scikit-learn, FastAPI, Docker, Pandas, Matplotlib, Seaborn
+**Tech Stack**: scikit-learn, FastAPI, Docker
 
-**Documentation**: See [Iris-Project/README.md](./Iris-Project/README.md) for detailed project documentation
+[View Project](./Iris-Project/)
+
+---
+
+### 2. House Prices Prediction
+**Status**: Complete | **Type**: Regression
+
+Kaggle house prices prediction with comprehensive feature engineering and production deployment.
+
+**Key Features**:
+- Advanced preprocessing (79 → 290 features after encoding)
+- Ridge, Lasso, ElasticNet comparison with GridSearchCV
+- Missing value imputation with domain knowledge
+- Residual analysis and model diagnostics
+
+**Tech Stack**: scikit-learn, FastAPI, Docker
+
+[View Project](./HousePrices-Project/)
+
+---
+
+### 3. CNN Image Classifier (CIFAR-10)
+**Status**: Complete | **Type**: Deep Learning / Image Classification
+
+Multi-model comparison for image classification: Baseline CNN → Augmented CNN → Transfer Learning.
+
+**Key Features**:
+- **3-model progressive comparison** demonstrating iterative improvement
+- **Transfer Learning with MobileNetV2** (87.4% accuracy)
+- Data augmentation pipeline (flip, rotation, zoom, contrast)
+- Batch Normalization for training stability
+- **Overfitting analysis** and mitigation strategies
+- REST API with single/batch prediction endpoints
+- Docker containerization
+
+**Tech Stack**: TensorFlow, Keras, MobileNetV2, FastAPI, Docker
+
+[View Project](./CNN_image_classifier/)
 
 ---
 
@@ -29,71 +63,30 @@ This repository contains multiple machine learning projects demonstrating variou
 
 ```
 MachineLearning/
-├── Iris-Project/           # Iris flower classification project
-│   ├── app.py             # FastAPI application
-│   ├── Dockerfile         # Container configuration
-│   ├── iris_classification.ipynb  # Jupyter notebook with EDA and training
-│   ├── models/            # Serialized ML models
-│   ├── figures/           # EDA visualizations
-│   ├── requirements.txt   # Python dependencies
-│   └── README.md          # Project documentation
-│
-└── README.md              # This file (project index)
+├── Iris-Project/              # Classification with SVM
+├── HousePrices-Project/       # Regression with Ridge/Lasso
+├── CNN_image_classifier/      # Deep Learning with Transfer Learning
+└── README.md
 ```
 
 ---
 
 ## Future Projects
 
-Planned projects to be added:
-- **House Price Prediction**: Regression analysis with feature engineering
-- **Sentiment Analysis**: NLP with transformer models
-- **Image Classification**: Deep learning with CNNs
-- **Recommender System**: Collaborative filtering implementation
-
----
-
-## How to Use This Repository
-
-Each project is self-contained in its own directory with:
-- Complete source code
-- Jupyter notebooks with analysis
-- Model artifacts
-- Docker deployment files (where applicable)
-- Comprehensive README documentation
-
-Navigate to individual project directories for specific setup and usage instructions.
+- **Sentiment Analysis**: NLP with Transformers (IMDB reviews)
+- **Time Series Forecasting**: Stock/weather prediction with LSTM
+- **Recommender System**: Collaborative filtering
 
 ---
 
 ## Skills Demonstrated
 
-Across these projects, I demonstrate proficiency in:
+**Machine Learning**: Supervised learning, model selection, cross-validation, hyperparameter tuning, feature engineering, regularization (L1/L2)
 
-**Machine Learning**:
-- Supervised learning (classification, regression)
-- Model selection and evaluation
-- Cross-validation and hyperparameter tuning
-- Feature engineering and preprocessing
+**Deep Learning**: CNNs, Transfer Learning, Data Augmentation, Batch Normalization, overfitting detection/mitigation
 
-**Data Science**:
-- Exploratory Data Analysis (EDA)
-- Statistical analysis and visualization
-- Feature correlation and selection
-- Data leakage prevention
+**Data Science**: EDA, statistical analysis, feature correlation, outlier handling, data leakage prevention
 
-**Software Engineering**:
-- API design and development (FastAPI, RESTful principles)
-- Containerization (Docker)
-- Code quality and documentation
-- Version control (Git)
+**Software Engineering**: REST API design (FastAPI), Docker containerization, Pydantic validation
 
-**MLOps**:
-- Model serialization and versioning
-- Deployment strategies
-- API-based model serving
-- Monitoring and evaluation
-
----
-
-**Contact**: For questions or collaboration opportunities, please reach out!
+**MLOps**: Model serialization, preprocessing artifacts, API-based serving

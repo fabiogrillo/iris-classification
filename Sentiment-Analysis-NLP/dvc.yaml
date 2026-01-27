@@ -1,0 +1,95 @@
+stages:
+  download:
+    cmd: python src/data/download.py
+    deps:
+      - src/data/download.py
+    outs:
+      - data/raw/train.csv
+      - data/raw/test.csv
+
+  preprocess:
+    cmd: python src/data/preprocess.py
+    deps:
+      - data/raw/train.csv
+      - data/raw/test.csv
+      - src/data/preprocess.py
+    outs:
+      - data/processed/train_clean.csv
+      - data/processed/test_clean.csv
+
+  train_tfidf:
+    cmd: python src/training/train_tfidf.py
+    deps:
+      - data/processed/train_clean.csv
+      - src/training/train_tfidf.py
+    params:
+      - configs/tfidf.yaml:
+          - max_features
+          - ngram_range
+          - C
+          - max_iter
+    outs:
+      - models/tfidf_logreg/
+    metrics:
+      - metrics/tfidf.json:
+          cache: false
+
+  train_lstm:
+    cmd: python src/training/train_lstm.py
+    deps:
+      - data/processed/train_clean.csv
+      - src/training/train_lstm.py
+      - src/models/lstm.py
+    params:
+      - configs/lstm.yaml:
+          - embedding_dim
+          - hidden_dim
+          - n_layers
+          - dropout
+          - bidirectional
+          - epochs
+          - batch_size
+          - learning_rate
+          - max_len
+    outs:
+      - models/lstm/
+    metrics:
+      - metrics/lstm.json:
+          cache: false
+
+  train_transformer:
+    cmd: python src/training/train_transformer.py
+    deps:
+      - data/processed/train_clean.csv
+      - src/training/train_transformer.py
+    params:
+      - configs/transformer.yaml:
+          - model_name
+          - num_train_epochs
+          - per_device_train_batch_size
+          - per_device_eval_batch_size
+          - warmup_steps
+          - weight_decay
+          - learning_rate
+          - max_length
+    outs:
+      - models/distilbert-final/
+    metrics:
+      - metrics/transformer.json:
+          cache: false
+
+  evaluate:
+    cmd: python src/evaluation/evaluate.py
+    deps:
+      - models/tfidf_logreg/
+      - models/lstm/
+      - models/distilbert-final/
+      - data/processed/test_clean.csv
+      - src/evaluation/evaluate.py
+    metrics:
+      - metrics/evaluation.json:
+          cache: false
+    plots:
+      - plots/confusion_matrix_tfidf.png
+      - plots/confusion_matrix_lstm.png
+      - plots/confusion_matrix_transformer.png
